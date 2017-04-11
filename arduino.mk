@@ -276,7 +276,7 @@ LIBRARYDIRS += $(addsuffix /src, $(LIBRARYDIRS))
 # files
 TARGET := $(if $(TARGET),$(TARGET),a.out)
 OBJECTS := $(patsubst %, build/%.o, $(basename $(SOURCES)))
-DEPFILES := $(patsubst %, build/.dep/%.dep, $(SOURCES))
+DEPFILES := $(patsubst %, build/.dep/src/%.dep, $(SOURCES))
 ARDUINOLIB := build/.lib/arduino.a
 ARDUINOLIBOBJS := $(foreach dir, $(ARDUINOCOREDIR) $(LIBRARYDIRS), \
 	$(patsubst %, build/.lib/%.o, $(wildcard $(addprefix $(dir)/, *.c *.cpp))))
@@ -299,7 +299,7 @@ CPPFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CPPFLAGS += -mmcu=$(BOARD_BUILD_MCU)
 CPPFLAGS += -DF_CPU=$(BOARD_BUILD_FCPU) -DARDUINO=$(ARDUINOCONST)
 CPPFLAGS += -DUSB_VID=$(BOARD_USB_VID) -DUSB_PID=$(BOARD_USB_PID)
-CPPFLAGS += -I. -Iutil -Iutility -I $(ARDUINOCOREDIR)
+CPPFLAGS += -I. -Iutil -Iutility -Iinclude -I $(ARDUINOCOREDIR)
 CPPFLAGS += -I $(ARDUINODIR)/hardware/arduino/avr/variants/$(BOARD_BUILD_VARIANT)/
 CPPFLAGS += $(addprefix -I , $(LIBRARYDIRS))
 CPPDEPFLAGS = -MMD -MP -MF build/.dep/$<.dep
@@ -394,8 +394,6 @@ endif
 
 build/$(TARGET).hex: build/$(TARGET).elf
 	$(OBJCOPY) -O ihex -R .eeprom $< $@
-
-.INTERMEDIATE: build/$(TARGET).elf
 
 build/$(TARGET).elf: $(ARDUINOLIB) $(OBJECTS)
 	$(CC) $(LINKFLAGS) $(OBJECTS) $(ARDUINOLIB) -lm -o $@
