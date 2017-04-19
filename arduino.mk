@@ -331,13 +331,15 @@ all: target
 target: build/$(TARGET).hex
 
 upload: target
-	@echo "\nUploading to board..."
+	@echo -e "\nUploading to board..."
 	@test -n "$(SERIALDEV)" || { \
 		echo "error: SERIALDEV could not be determined automatically." >&2; \
 		exit 1; }
 	@test 0 -eq $(SERIALDEVGUESS) || { \
 		echo "*GUESSING* at serial device:" $(SERIALDEV); \
 		echo; }
+	$(eval TOKILL=$(shell pgrep -f "SCREEN $(SERIALDEV)"))
+	@bash -c "[ -z "$(TOKILL)" ] || screen -X -S $(TOKILL) kill"
 ifeq "$(BOARD_BOOTLOADER_PATH)" "caterina"
 	stty $(STTYFARG) $(SERIALDEV) speed 1200
 	sleep 1
