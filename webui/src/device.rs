@@ -3,6 +3,9 @@ use serde_json::Error;
 
 use std::collections::HashMap;
 use std::fmt;
+use std::fs::File;
+use std::path::PathBuf;
+use std::io::Read;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SwitchConfig {
@@ -60,8 +63,13 @@ impl NetworkConfig {
         NetworkConfig { devices: HashMap::new() }
     }
 
-    pub fn parse(data: &str) -> Result<NetworkConfig, Error> {
-        let res: NetworkConfig = try!(serde_json::from_str(data));
+    pub fn parse_from_file(path: PathBuf) -> Result<NetworkConfig, Error> {
+        let mut data = String::new();
+        match try!(File::open(path)).read_to_string(&mut data) {
+            Err(e) => return Err(Error::from(e)),
+            Ok(_) => (),
+        }
+        let res: NetworkConfig = try!(serde_json::from_str(&data));
         Ok(res)
     }
 
