@@ -22,7 +22,7 @@ mod keeper;
 use keeper::Keeper;
 
 mod events;
-use events::{Event, EventManager};
+use events::{Event, EventManager, EventType};
 
 type NetworkState = Mutex<NetworkConfig>;
 type KeeperSend = Arc<Mutex<Keeper>>;
@@ -42,6 +42,18 @@ fn update_device(device_id: u8, dcfg: JSON<DeviceConfig>, cfg: State<NetworkStat
     JSON(json!({ "status": 200 }))
 }
 
+#[delete("/api/config/<device_id>")]
+fn delete_device(device_id: u8, cfg: State<NetworkState>, keeper: State<KeeperSend>) -> Option<JSON<Value>> {
+    let mut config = cfg.lock().expect("Network state lock");
+    if config.devices.contains_key(&device_id) {
+        config.devices.remove(&device_id);
+        keeper.lock().unwrap().send(&config.to_string());
+        Some(JSON(json!({ "status": 200 })))
+    } else {
+        None
+    }
+}
+
 #[post("/api/config/<device_id>/<switch_id>", format="application/json", data="<scfg>")]
 fn update_switch(device_id: u8, switch_id: u8, scfg: JSON<SwitchConfig>, cfg: State<NetworkState>, keeper: State<KeeperSend>) -> Option<JSON<Value>> {
     let mut config = cfg.lock().expect("Network state lock");
@@ -53,20 +65,48 @@ fn update_switch(device_id: u8, switch_id: u8, scfg: JSON<SwitchConfig>, cfg: St
     Some(JSON(json!({ "status": 200 })))
 }
 
+#[post("/api/turn_on/<device_id>/<switch_id>")]
+fn turn_on(device_id: u8, switch_id: u8, cfg: State<NetworkState>, db: State<DB>) -> Option<JSON<Value>> {
+    let config = cfg.lock().expect("Network state lock");
+    if config.devices.contains_key(&device_id) {
+        let device = config.devices.get(&device_id).unwrap();
+        if device.switches.contains_key(&switch_id) {
+            db.lock().unwrap().insert(&Event::new(device_id, EventType::SwitchIsOn(switch_id), 10));
+            Some(JSON(json!({ "status": 200 })))
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+#[post("/api/turn_off/<device_id>/<switch_id>")]
+fn turn_off(device_id: u8, switch_id: u8, cfg: State<NetworkState>, db: State<DB>) -> Option<JSON<Value>> {
+    let config = cfg.lock().expect("Network state lock");
+    if config.devices.contains_key(&device_id) {
+        let device = config.devices.get(&device_id).unwrap();
+        if device.switches.contains_key(&switch_id) {
+            db.lock().unwrap().insert(&Event::new(device_id, EventType::SwitchIsOff(switch_id), 10));
+            Some(JSON(json!({ "status": 200 })))
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 struct TimestampInterval {
     start: i64,
     stop: i64,
 }
 
-#[post("/api/events/<id>", format="application/json", data="<interval>")]
-fn get_events(id: u8, interval: JSON<TimestampInterval>, db: State<DB>) -> Option<JSON<Vec<Event>>> {
-    let result = db.lock().unwrap().query(id, interval.0.start, interval.0.stop);
-    if result.len() == 0 {
-        None
-    } else {
-        Some(JSON(result))
-    }
+#[post("/api/events", format="application/json", data="<interval>")]
+fn get_events(interval: JSON<TimestampInterval>, db: State<DB>) -> JSON<Vec<Event>> {
+    let result = db.lock().unwrap().query(interval.0.start, interval.0.stop);
+    JSON(result)
 }
 
 #[get("/")]
@@ -85,10 +125,22 @@ fn not_found() -> JSON<Value> {
     JSON(json!({ "status": 404, "msg": "Not found"}))
 }
 
+#[error(500)]
+fn internal_server_error() -> JSON<Value> {
+    JSON(json!({ "status": 500, "msg": "Internal server error"}))
+}
+
+#[error(400)]
+fn bad_request() -> JSON<Value> {
+    JSON(json!({ "status": 400, "msg": "Bad request"}))
+}
+
 fn main() {
     let webserver = rocket::ignite()
-        .mount("/", routes![config, update_device, update_switch, get_events, index, files])
-        .catch(errors![not_found]);
+        .mount("/", routes![
+            update_device, update_switch, turn_on, turn_off, delete_device,
+            get_events, config, index, files 
+        ]).catch(errors![not_found, internal_server_error, bad_request]);
     const DEFAULT_STORAGE_DIR: &'static str = "data";
     let data_dir = PathBuf::new().join(
         config::active()

@@ -9,23 +9,24 @@ use std::io::Read;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SwitchConfig {
-    name: String,
-    buttons: Vec<(u8, u8)>,
-    pirs: Vec<(u8, u8)>,
+    pub name: String,
+    pub buttons: Vec<(u8, u8)>,
+    pub pirs: Vec<(u8, u8)>,
+    pub pir_time: u16,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct DeviceConfig {
-    name: String,
-    switches: HashMap<u8, SwitchConfig>,
-    num_buttons: u8,
-    num_pirs: u8,
-    battery_powered: bool,
+    pub name: String,
+    pub switches: HashMap<u8, SwitchConfig>,
+    pub num_buttons: u8,
+    pub num_pirs: u8,
+    pub battery_powered: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct NetworkConfig {
-    devices: HashMap<u8, DeviceConfig>,
+    pub devices: HashMap<u8, DeviceConfig>,
 }
 
 impl fmt::Display for NetworkConfig {
@@ -54,6 +55,9 @@ impl DeviceConfig {
                 }
             );
         };
+        if !cfg.switches.contains_key(&id) {
+            cfg.switches.insert(id, (*scfg).clone());
+        }
         cfg
     }
 }

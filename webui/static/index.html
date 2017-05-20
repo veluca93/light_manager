@@ -2,7 +2,74 @@
 <html>
     <head>
         <title>Light manager Web UI</title>
+        <link href="//fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/css/materialize.min.css"/>
+        <link rel="stylesheet" href="style.css"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     </head>
-    <body>
+    <body class="grey darken-3 grey-text text-lighten-2">
+        <nav class="nav-extended blue darken-3">
+            <div class="nav-content">
+                <ul class="tabs tabs-transparent tabs-fixed-width">
+                    <li class="tab"><a href="#currentstatus">Status</a></li>
+                    <li class="tab"><a href="#configuration">Configuration</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="container" id="loader">
+            <div class="preloader-wrapper big active">
+              <div class="spinner-layer spinner-blue">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div><div class="gap-patch">
+                  <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+              <div class="spinner-layer spinner-red">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div><div class="gap-patch">
+                  <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+              <div class="spinner-layer spinner-yellow">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div><div class="gap-patch">
+                  <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+              <div class="spinner-layer spinner-green">
+                <div class="circle-clipper left">
+                  <div class="circle"></div>
+                </div><div class="gap-patch">
+                  <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                  <div class="circle"></div>
+                </div>
+              </div>
+            </div>
+        </div>
+        <div class="container" id="content">
+            <div class="row">
+                <div class="s12" id="currentstatus">
+                    <div id="status" class="row">
+                    </div>
+                </div>
+                <div class="s12" id="configuration">
+                    <div id="config" class="container">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.js"></script>
+        <script src="webui.js"></script>
     </body>
 </html>
