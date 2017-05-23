@@ -20,7 +20,7 @@ static const uint8_t board_max_buttons = 5;
 
 static const uint8_t battery_lvl_pin = A0;
 
-static const unsigned long button_interval = 200;
+static const unsigned long button_interval = 300;
 
 static const unsigned long status_min_interval = 60000;
 
