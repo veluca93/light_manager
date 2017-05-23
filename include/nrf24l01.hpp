@@ -5,6 +5,8 @@
 #include <Arduino.h>
 #include "nrf24l01defs.hpp"
 
+// TODO: implement variable packet size
+
 /**
  *  Class for communication with the nrf24l01 radio, inspired by Mirf.
  */
@@ -29,6 +31,9 @@ class nrf24l01 {
         if (crc_length == 0) return 0;
         uint8_t ans = 1 << en_crc;
         if (crc_length == 2) ans |= 1 << crco;
+        //// Leave interrupts on only for received packets
+        //ans |= 1 << mask_max_rt;
+        //ans |= 1 << mask_tx_ds;
         return ans;
     }
 
@@ -286,22 +291,27 @@ public:
 
     class sender {
         friend class nrf24l01;
-        nrf24l01& n;
-        sender(nrf24l01& n): n(n) {
-            n.tx_mode();
-        }
-        ~sender() {
-            n.rx_mode();
+        nrf24l01* n;
+        sender(nrf24l01* n): n(n) {
+            n->tx_mode();
         }
         sender(const sender&) = delete;
     public:
         bool send_sync(const uint8_t* data) {
-            return n.send_sync(data);
+            return n->send_sync(data);
+        }
+        sender(sender&& other) {
+            n = other.n;
+            other.n = nullptr;
+        }
+        ~sender() {
+            if (n != nullptr)
+                n->rx_mode();
         }
     };
 
     sender get_sender() {
-        return sender(*this);
+        return this;
     }
 };
 

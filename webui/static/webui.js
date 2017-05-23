@@ -104,14 +104,14 @@ function gen_device_config(device, id) {
     if (id != 'new') {
         ret += '  <input type="hidden" id="id' + id + '" name="id" value="' + id + '" />';
     } else {
-        var max = -1;
+        var max = 1; // The first valid device ID is 1
         for (var i in devices) {
             if (parseInt(i) > max)
                 max = parseInt(i);
         }
         ret += '  <div class="row">';
         ret += '    <div class="input-field col s12">';
-        ret += '      <input type="number" id="id' + id + '" name="id" value="' + (max+1) + '" />';
+        ret += '      <input type="number" min="2" id="id' + id + '" name="id" value="' + (max+1) + '" />';
         ret += '      <label for="id' + id + '">Id</label>';
         ret += '    </div>';
         ret += '  </div>';

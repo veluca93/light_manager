@@ -1,4 +1,5 @@
 -I/usr/share/arduino/hardware/archlinux-arduino/avr/libraries/SPI/src/
+-I/usr/share/arduino/hardware/archlinux-arduino/avr/libraries/EEPROM/src/
 -I/usr/share/arduino/hardware/archlinux-arduino/avr/cores/arduino/
 -I/usr/avr/include/
 -Iinclude
@@ -17,3 +18,5 @@
 -DARDUINO=100
 -DUSB_VID=
 -DUSB_PID=
+-DADDRESS="mesh1"
+-DID=0
