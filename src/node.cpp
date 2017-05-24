@@ -129,7 +129,7 @@ void loop(){
     }
 
     // Check if we need to send a status packet
-    unsigned long status_interval = status_min_interval + ((unsigned long) rnd() << 6);
+    unsigned long status_interval = status_min_interval + ((unsigned long) rnd() >> 2);
     if (millis() - last_status_message > status_interval) {
         last_status_message = millis();
         send_status();

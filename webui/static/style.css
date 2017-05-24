@@ -47,6 +47,10 @@ a.collection-item > .material-icons {
     float: right;
 }
 
+.turnoff {
+    text-align: center;
+}
+
 /* Dark theme */
 .chkbox label {
     color: #eeeeee;

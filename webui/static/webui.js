@@ -106,14 +106,10 @@ function gen_device_config(device, id) {
         ret += '  <input type="hidden" id="id' + id + '" name="id" value="' + id + '" />';
     } else {
         ret += '    <div class="input-field col s12">';
-        ret += '      <select name="id">';
-        for (var dev in unknown_devices) {
-            ret += '    <option value="' + dev + '">' + dev + '</option>';
-        }
+        ret += '      <select name="id" id="newdevid">';
         ret += '      </select>';
         ret += '      <label>Id</label>';
         ret += '    </div>';
-        ret += '  </div>';
     }
     ret += '  <div class="row">';
     ret += '    <div class="input-field col s6">';
@@ -181,14 +177,12 @@ function gen_config_page() {
         ret += '   </div>';
         ret += ' </li>';
     }
-    if (Object.keys(unknown_devices).length > 0) {
-        ret += '     <li>';
-        ret += '       <div class="collapsible-header grey darken-2"><i class="material-icons">add</i>Add</div>';
-        ret += '       <div class="collapsible-body">';
-        ret += gen_device_config({num_buttons: 0, num_pirs: 0}, 'new');
-        ret += '       </div>';
-        ret += '     </li>';
-    }
+    ret += '     <li id="adddevice" class="hidden">';
+    ret += '       <div class="collapsible-header grey darken-2"><i class="material-icons">add</i>Add</div>';
+    ret += '       <div class="collapsible-body">';
+    ret += gen_device_config({num_buttons: 0, num_pirs: 0}, 'new');
+    ret += '       </div>';
+    ret += '     </li>';
     ret += '   </ul>';
     return ret;
 }
@@ -206,11 +200,54 @@ function stop_loading() {
 }
 
 var poll_timeout;
+var skip = false;
+
+function turnoff() {
+    if ($(".swlever").prop('disabled')) return false;
+    if ($(".turnoff button").prop('disabled')) return false;
+    skip = true;
+    clearTimeout(poll_timeout);
+    $(".swlever").prop('disabled', 'disabled');
+    $(".turnoff button").prop('disabled', 'disabled');
+    var cnt = 0;
+    for (var dev in devices) {
+        for (var sw in devices[dev].switches) {
+            cnt += 1;
+        }
+    }
+    var done = 0;
+    for (var dev in devices) {
+        for (var sw in devices[dev].switches) {
+            var url = "/api/turn_off/" + dev + "/" + sw;
+            $.ajax({
+                type: "POST",
+                url: url,
+            }).done(function(data) {
+                done += 1;
+                if (done == cnt) {
+                    skip = false;
+                    poll_timeout = setTimeout(poll_events, 1000);
+                }
+            }).fail(function(data) {
+                alert(data.responseJSON["msg"]);
+                done += 1;
+                if (done == cnt) {
+                    skip = false;
+                    poll_timeout = setTimeout(poll_events, 100);
+                }
+            });
+        }
+    }
+    return true;
+}
 
 function toggle_switch(dev, sw) {
     if ($(".swlever").prop('disabled')) return false;
+    if ($(".turnoff button").prop('disabled')) return false;
+    skip = true;
     clearTimeout(poll_timeout);
     $(".swlever").prop('disabled', 'disabled');
+    $(".turnoff button").prop('disabled', 'disabled');
     var url;
     if (devices[dev].switches[sw].status == "on") {
         url = "/api/turn_off/" + dev + "/" + sw;
@@ -221,9 +258,11 @@ function toggle_switch(dev, sw) {
         type: "POST",
         url: url,
     }).done(function(data) {
+        skip = false;
         poll_timeout = setTimeout(poll_events, 1000);
     }).fail(function(data) {
         alert(data.responseJSON["msg"]);
+        skip = false;
         poll_timeout = setTimeout(poll_events, 100);
     });
     return true;
@@ -260,13 +299,26 @@ function poll_events() {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
     }).done(function(data) {
+        if (skip) return;
         data.sort(function(a, b) {
             return a["date_received"] > b["date_received"];
         });
+        var changed = false;
         for (var ev in data) {
             var dev = data[ev].node_id;
-            if (devices[dev] == undefined) unknown_devices[dev] = true;
-            else delete unknown_devices[dev];
+            if (devices[dev] == undefined) {
+                if (unknown_devices[dev] == undefined) {
+                    unknown_devices[dev] = true;
+                    changed = true;
+                }
+                continue;
+            }
+            else {
+                if (unknown_devices[dev] !== undefined) {
+                    changed = true;
+                    delete unknown_devices[dev];
+                }
+            }
             if (data[ev].kind.SwitchIsOn !== undefined) {
                 if (devices[dev].switches[data[ev].kind.SwitchIsOn] !== undefined)
                     devices[dev].switches[data[ev].kind.SwitchIsOn].status = "on";
@@ -275,7 +327,24 @@ function poll_events() {
                     devices[dev].switches[data[ev].kind.SwitchIsOff].status = "off";
             }
         }
+        if (Object.keys(unknown_devices).length > 0) {
+            if (changed) {
+                $('#adddevice').removeClass('hidden');
+                var opts = '';
+                for (var dev in unknown_devices) {
+                    opts += '    <option value="' + dev + '">' + dev + '</option>';
+                }
+                $('#newdevid').html(opts);
+                $('#newdevid').material_select();
+                Materialize.updateTextFields();
+            }
+        } else {
+            $('#adddevice').addClass('hidden');
+        }
         var html = '<ul class="collection">';
+        html += '     <li class="collection-item turnoff grey darken-3">';
+        html += '       <button type="button" class="waves-effect waves-light btn blue" onclick="turnoff()" >Turn off everything</button>';
+        html += '     </li>';
         for (var dev in devices) {
             for (var sw in devices[dev].switches) {
                 html += switch_status(dev, sw);

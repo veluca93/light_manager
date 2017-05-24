@@ -4,15 +4,16 @@
 #include <Arduino.h>
 
 class rng {
-    uint8_t seed;
+    uint16_t x, y;
 public:
-    uint8_t operator()() {
-        seed ^= seed << 7;
-        seed ^= seed >> 5;
-        seed ^= seed << 3;
-        return seed;
+    uint16_t operator()() {
+        uint16_t t = x^(x<<5);
+        x = y;
+        return y = (y^(y>>1)) ^ (t^(t>>3));
     }
 
-    rng(uint8_t seed): seed(seed) {}
+    rng(uint8_t seed) {
+        y = x = seed | ((uint16_t)seed<<8);
+    }
 };
 #endif

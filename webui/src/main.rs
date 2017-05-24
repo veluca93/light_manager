@@ -55,16 +55,15 @@ fn update_device(
                 thread::sleep(time::Duration::from_millis(10)); // Avoid flooding the network
             }
         }
-    } else {
-        *config = config.replace_device(device_id, &dcfg.0);
-        for switch in dcfg.switches.iter() {
-            for i in config.devices.iter() {
-                serial.lock().expect("Serial lock").update_switch(device_id, *switch.0, &switch.1.buttons, &switch.1.pirs, *i.0);
-                thread::sleep(time::Duration::from_millis(10)); // Avoid flooding the network
-            }
-            serial.lock().expect("Serial lock").update_switch_pir_time(device_id, *switch.0, switch.1.pir_time);
-        }
     }
+    for switch in dcfg.switches.iter() {
+        for i in config.devices.iter() {
+            serial.lock().expect("Serial lock").update_switch(device_id, *switch.0, &switch.1.buttons, &switch.1.pirs, *i.0);
+            thread::sleep(time::Duration::from_millis(10)); // Avoid flooding the network
+        }
+        serial.lock().expect("Serial lock").update_switch_pir_time(device_id, *switch.0, switch.1.pir_time);
+    }
+    *config = config.replace_device(device_id, &dcfg.0);
     keeper.lock().unwrap().send(&config.to_string());
     JSON(json!({ "status": 200 }))
 }

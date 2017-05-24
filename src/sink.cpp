@@ -4,8 +4,6 @@
 
 nrf24l01::nrfmesh<10, sizeof(generic_message)> mesh{(const uint8_t*)ADDRESS, max_num_nodes};
 
-bool state = false;
-
 void setup(){
     Serial.begin(9600);
 }
@@ -72,9 +70,10 @@ void loop(){
             *msg = config_time_message{target_node, switch_id, time};
             break;
         }
-        default: return;
+        default: {
+            return;
         }
-        state = !state;
+        }
         mesh.send();
     }
 }
