@@ -38,7 +38,7 @@ class nrfmesh {
 
     void transmit(uint8_t* pkt) {
         for (uint8_t i=0; i<4; i++) {
-            for (uint8_t _=0; _<4; i++) {
+            for (uint8_t _=0; _<4; _++) {
                 uint16_t wait_time = rand();
                 delayMicroseconds(wait_time<<(4-i));
                 nrf.tx_mode();
