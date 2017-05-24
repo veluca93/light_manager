@@ -275,7 +275,7 @@ LIBRARYDIRS += $(addsuffix /src, $(LIBRARYDIRS))
 
 # files
 TARGET := $(if $(TARGET),$(TARGET),a.out)
-OBJECTS := $(patsubst %, build/%.o, $(basename $(SOURCES)))
+OBJECTS := $(patsubst %, build/%_${ID}.o, $(basename $(SOURCES)))
 DEPFILES := $(patsubst %, build/.dep/src/%.dep, $(SOURCES))
 ARDUINOLIB := build/.lib/arduino.a
 ARDUINOLIBOBJS := $(foreach dir, $(ARDUINOCOREDIR) $(LIBRARYDIRS), \
@@ -400,27 +400,27 @@ build/$(TARGET).hex: build/$(TARGET).elf
 build/$(TARGET).elf: $(ARDUINOLIB) $(OBJECTS)
 	$(CC) $(LINKFLAGS) $(OBJECTS) $(ARDUINOLIB) -lm -o $@
 
-build/%.o: src/%.c
+build/%_${ID}.o: src/%.c
 	mkdir -p build/.dep/$(dir $<)
 	$(COMPILE.c) $(CPPDEPFLAGS) -o $@ $<
 
-build/%.o: src/%.cpp
+build/%_${ID}.o: src/%.cpp
 	mkdir -p build/.dep/$(dir $<)
 	$(COMPILE.cpp) $(CPPDEPFLAGS) -o $@ $<
 
-build/%.o: src/%.cc
+build/%_${ID}.o: src/%.cc
 	mkdir -p build/.dep/$(dir $<)
 	$(COMPILE.cpp) $(CPPDEPFLAGS) -o $@ $<
 
-build/%.o: src/%.C
+build/%_${ID}.o: src/%.C
 	mkdir -p build/.dep/$(dir $<)
 	$(COMPILE.cpp) $(CPPDEPFLAGS) -o $@ $<
 
-build/%.o: src/%.ino
+build/%_${ID}.o: src/%.ino
 	mkdir -p build/.dep/$(dir $<)
 	$(COMPILE.cpp) $(CPPDEPFLAGS) -o $@ $(CPPINOFLAGS) $<
 
-build/%.o: src/%.pde
+build/%_${ID}.o: src/%.pde
 	mkdir -p build/.dep/$(dir $<)
 	$(COMPILE.cpp) $(CPPDEPFLAGS) -o $@ $(CPPINOFLAGS) $<
 
