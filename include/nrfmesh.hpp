@@ -10,7 +10,7 @@ namespace nrf24l01 {
 template<
     uint8_t channel_ = 10,
     uint8_t payload_size_ = 4,
-    uint8_t packet_dedup_buf_ = 3,  // 1 -> 2, 2 -> 4, 3 -> 8 etc
+    uint8_t packet_dedup_buf_ = 6,  // 1 -> 2, 2 -> 4, 3 -> 8 etc
     uint8_t address_length_ = 5,
     uint8_t csn_pin_ = 7,
     uint8_t ce_pin_ = 8
@@ -37,9 +37,9 @@ class nrfmesh {
     rng rand;
 
     void transmit(uint8_t* pkt) {
-        for (int i=0; i<8; i++) {
+        for (int i=0; i<16; i++) {
             uint16_t wait_time = rand();
-            delayMicroseconds(wait_time<<5);
+            delayMicroseconds(wait_time<<4);
             nrf.tx_mode();
             nrf.send_sync(pkt);
             nrf.rx_mode();

@@ -14,8 +14,6 @@ unsigned long last_status_message = 0;
 rng rnd(ID);
 
 void setup(){
-    Serial.begin(9600);
-    Serial.println("Starting up");
     for (uint8_t i=0; i<board_max_switches; i++) {
         pinMode(switch_base_pin+i, OUTPUT);
         digitalWrite(switch_base_pin+i, LOW);
@@ -30,6 +28,16 @@ void setup(){
         pinMode(pir_base_pin+i, INPUT_PULLUP);
         last_pir_event[i] = 0;
     }
+}
+
+void send_status() {
+    status_message* pkt = (status_message*) mesh.get_next_packet();
+    uint8_t switch_status = 0;
+    for (uint8_t i=0; i<board_max_switches; i++)
+        if (is_switch_on[i])
+            switch_status |= 1<<i;
+    *pkt = status_message{ID, get_battery_level(), switch_status};
+    mesh.send();
 }
 
 void flip_switch(uint8_t switch_id) {
@@ -54,6 +62,7 @@ void handle_peer_event(const peer_event_message* msg) {
             }
         }
     }
+    send_status();
 }
 
 void handle_status(const status_message* msg) {}
@@ -63,6 +72,7 @@ void handle_master_command(const master_command_message* msg) {
             flip_switch(msg->switch_id);
         }
     }
+    send_status();
 }
 void handle_config_buttons(const config_buttons_message* msg) {
     if (msg->target_node != ID) return;
@@ -122,13 +132,7 @@ void loop(){
     unsigned long status_interval = status_min_interval + ((unsigned long) rnd() << 6);
     if (millis() - last_status_message > status_interval) {
         last_status_message = millis();
-        status_message* pkt = (status_message*) mesh.get_next_packet();
-        uint8_t switch_status = 0;
-        for (uint8_t i=0; i<board_max_switches; i++)
-            if (is_switch_on[i])
-                switch_status |= 1<<i;
-        *pkt = status_message{ID, get_battery_level(), switch_status};
-        mesh.send();
+        send_status();
     }
 }
 

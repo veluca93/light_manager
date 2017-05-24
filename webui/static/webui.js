@@ -23,7 +23,7 @@ function get_switch_modal(device_id, switch_id, sw) {
     var ret = "";
     var id = device_id + 'n' + switch_id;
     if (switch_id == 'ew') {
-        switch_id = 0;
+        switch_id = -1;
         for (var i in devices[device_id].switches)
             if (switch_id < i)
                 switch_id = i;
@@ -104,14 +104,14 @@ function gen_device_config(device, id) {
     if (id != 'new') {
         ret += '  <input type="hidden" id="id' + id + '" name="id" value="' + id + '" />';
     } else {
-        var max = 1; // The first valid device ID is 1
+        var max = 0; // The first valid device ID is 1
         for (var i in devices) {
             if (parseInt(i) > max)
                 max = parseInt(i);
         }
         ret += '  <div class="row">';
         ret += '    <div class="input-field col s12">';
-        ret += '      <input type="number" min="2" id="id' + id + '" name="id" value="' + (max+1) + '" />';
+        ret += '      <input type="number" min="1" id="id' + id + '" name="id" value="' + (max+1) + '" />';
         ret += '      <label for="id' + id + '">Id</label>';
         ret += '    </div>';
         ret += '  </div>';
@@ -247,7 +247,7 @@ function switch_status(dev, sw) {
 
 function poll_events() {
     clearTimeout(poll_timeout);
-    poll_timeout = setTimeout(poll_events, 3000);
+    poll_timeout = setTimeout(poll_events, 1000);
     var req_data = {
         start: (+ new Date()) / 1000 - 30*60,
         stop: (+ new Date()) / 1000 + 30 /* ensure nothing bad happens with clock skew */
@@ -265,9 +265,11 @@ function poll_events() {
         for (var ev in data) {
             var dev = data[ev].node_id;
             if (data[ev].kind.SwitchIsOn !== undefined) {
-                devices[dev].switches[data[ev].kind.SwitchIsOn].status = "on";
+                if (devices[dev].switches[data[ev].kind.SwitchIsOn] !== undefined)
+                    devices[dev].switches[data[ev].kind.SwitchIsOn].status = "on";
             } else if (data[ev].kind.SwitchIsOff !== undefined) {
-                devices[dev].switches[data[ev].kind.SwitchIsOff].status = "off";
+                if (devices[dev].switches[data[ev].kind.SwitchIsOff] !== undefined)
+                    devices[dev].switches[data[ev].kind.SwitchIsOff].status = "off";
             }
         }
         var html = '<ul class="collection">';

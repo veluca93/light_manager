@@ -7,8 +7,7 @@ pub enum EventType {
     SwitchIsOn(u8),
     SwitchIsOff(u8),
     ButtonPress(u8),
-    PIRIsOn(u8),
-    None
+    PIRIsOn(u8)
 }
 
 #[derive(Serialize, Deserialize)]
@@ -40,14 +39,12 @@ impl EventType {
             EventType::SwitchIsOn(x) => (1, Some(x)),
             EventType::SwitchIsOff(x) => (2, Some(x)),
             EventType::ButtonPress(x) => (3, Some(x)),
-            EventType::PIRIsOn(x) => (4, Some(x)),
-            EventType::None => (0, None),
+            EventType::PIRIsOn(x) => (4, Some(x))
         }
     }
 
     pub fn from_pair(kind: u8, value: Option<u8>) -> Option<EventType> {
         match (kind, value) {
-            (0, _) => Some(EventType::None),
             (1, Some(v)) => Some(EventType::SwitchIsOn(v)),
             (2, Some(v)) => Some(EventType::SwitchIsOff(v)),
             (3, Some(v)) => Some(EventType::ButtonPress(v)),
@@ -68,11 +65,10 @@ impl EventManager {
             CREATE TABLE IF NOT EXISTS events (
                 node_id INTEGER NOT NULL,
                 kind INTEGER NOT NULL,
-                value INTEGER,
+                value INTEGER NOT NULL,
                 battery_level INTEGER NOT NULL,
                 date INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-                CHECK (value IS NOT NULL OR kind == 0),
-                CHECK (kind >= 0),
+                CHECK (kind > 0),
                 CHECK (kind < 5)
             );
             CREATE INDEX IF NOT EXISTS id_date_idx ON events(date);
