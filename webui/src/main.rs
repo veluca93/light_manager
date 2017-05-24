@@ -51,7 +51,7 @@ fn update_device(
     if !config.devices.contains_key(&device_id) {
         for dev in config.devices.iter() {
             for switch in dev.1.switches.iter() {
-                serial.lock().expect("Serial lock").update_switch(device_id, *switch.0, &Vec::new(), &Vec::new(), *dev.0);
+                serial.lock().expect("Serial lock").update_switch(*dev.0, *switch.0, &Vec::new(), &Vec::new(), device_id);
                 thread::sleep(time::Duration::from_millis(10)); // Avoid flooding the network
             }
         }
