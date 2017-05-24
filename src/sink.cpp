@@ -8,8 +8,6 @@ bool state = false;
 
 void setup(){
     Serial.begin(9600);
-    pinMode(2, OUTPUT);
-    digitalWrite(2, LOW);
 }
 
 void handle_status(status_message* msg) {
@@ -77,7 +75,6 @@ void loop(){
         default: return;
         }
         state = !state;
-        digitalWrite(2, state ? HIGH : LOW);
         mesh.send();
     }
 }
