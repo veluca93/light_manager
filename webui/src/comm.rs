@@ -2,7 +2,6 @@
 use serial::prelude::*;
 use serial::{self, SystemPort};
 use events::{EventManager, Event, EventType};
-use device::SwitchConfig;
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
@@ -81,7 +80,10 @@ impl SerialComm {
         ret
     }
 
-    pub fn update_switch(&mut self, device_id: u8, switch_id: u8, scfg: &SwitchConfig, source: u8) {
+    pub fn update_switch(
+        &mut self, device_id: u8, switch_id: u8, buttons: &Vec<(u8, u8)>,
+        pirs: &Vec<(u8, u8)>, source: u8
+    ) {
         let mut data = [0; 7];
         data[0] = 123;
         data[1] = 1;
@@ -90,18 +92,17 @@ impl SerialComm {
         data[4] = source;
         // Button configuration
         let mut bitmask = 0;
-        for button in &scfg.buttons {
+        for button in buttons {
             if button.0 == source {
                 bitmask |= 1<<button.1;
             }
         }
-        println!("{}", bitmask);
         data[5] = bitmask;
         data[6] = 0;
         self.port.write_all(&data).unwrap();
         // PIR configuration
         let mut bitmask = 0;
-        for pir in &scfg.pirs {
+        for pir in pirs {
             if pir.0 == source {
                 bitmask |= 1<<pir.1;
             }
@@ -111,14 +112,14 @@ impl SerialComm {
         self.port.write_all(&data).unwrap();
     }
 
-    pub fn update_switch_pir_time(&mut self, device_id: u8, switch_id: u8, scfg: &SwitchConfig) {
+    pub fn update_switch_pir_time(&mut self, device_id: u8, switch_id: u8, pir_time: u16) {
         let mut data = [0; 7];
         data[0] = 123;
         data[1] = 1;
         data[2] = device_id;
         data[3] = switch_id;
-        data[4] = (scfg.pir_time>>8) as u8;
-        data[5] = (scfg.pir_time & 0xFF) as u8;
+        data[4] = (pir_time>>8) as u8;
+        data[5] = (pir_time & 0xFF) as u8;
         self.port.write_all(&data).unwrap();
     }
 

@@ -48,13 +48,22 @@ fn update_device(
     keeper: State<KeeperSend>, serial: State<Serial>) -> JSON<Value>
 {
     let mut config = cfg.lock().expect("Network state lock");
-    *config = config.replace_device(device_id, &dcfg.0);
-    for switch in dcfg.switches.iter() {
-        for i in config.devices.iter() {
-            serial.lock().expect("Serial lock").update_switch(device_id, *switch.0, switch.1, *i.0);
-            thread::sleep(time::Duration::from_millis(10)); // Avoid flooding the network
+    if !config.devices.contains_key(&device_id) {
+        for dev in config.devices.iter() {
+            for switch in dev.1.switches.iter() {
+                serial.lock().expect("Serial lock").update_switch(device_id, *switch.0, &Vec::new(), &Vec::new(), *dev.0);
+                thread::sleep(time::Duration::from_millis(10)); // Avoid flooding the network
+            }
         }
-        serial.lock().expect("Serial lock").update_switch_pir_time(device_id, *switch.0, switch.1);
+    } else {
+        *config = config.replace_device(device_id, &dcfg.0);
+        for switch in dcfg.switches.iter() {
+            for i in config.devices.iter() {
+                serial.lock().expect("Serial lock").update_switch(device_id, *switch.0, &switch.1.buttons, &switch.1.pirs, *i.0);
+                thread::sleep(time::Duration::from_millis(10)); // Avoid flooding the network
+            }
+            serial.lock().expect("Serial lock").update_switch_pir_time(device_id, *switch.0, switch.1.pir_time);
+        }
     }
     keeper.lock().unwrap().send(&config.to_string());
     JSON(json!({ "status": 200 }))
@@ -80,10 +89,10 @@ fn update_switch(
     let mut config = cfg.lock().expect("Network state lock");
     if config.devices.contains_key(&device_id) {
         for i in config.devices.iter() {
-            serial.lock().expect("Serial lock").update_switch(device_id, switch_id, &scfg.0, *i.0);
+            serial.lock().expect("Serial lock").update_switch(device_id, switch_id, &scfg.0.buttons, &scfg.0.pirs, *i.0);
             thread::sleep(time::Duration::from_millis(10)); // Avoid flooding the network
         }
-        serial.lock().expect("Serial lock").update_switch_pir_time(device_id, switch_id, &scfg.0);
+        serial.lock().expect("Serial lock").update_switch_pir_time(device_id, switch_id, scfg.0.pir_time);
         match config.replace_switch(device_id, switch_id, &scfg.0) {
             Some(v) => *config = v,
             None => return None,
