@@ -1,4 +1,5 @@
 var devices = {};
+var unknown_devices = {};
 
 function delete_device(id) {
     if (!confirm("Are you sure you want to delete device " + id + "?")) return;
@@ -104,15 +105,13 @@ function gen_device_config(device, id) {
     if (id != 'new') {
         ret += '  <input type="hidden" id="id' + id + '" name="id" value="' + id + '" />';
     } else {
-        var max = 0; // The first valid device ID is 1
-        for (var i in devices) {
-            if (parseInt(i) > max)
-                max = parseInt(i);
-        }
-        ret += '  <div class="row">';
         ret += '    <div class="input-field col s12">';
-        ret += '      <input type="number" min="1" id="id' + id + '" name="id" value="' + (max+1) + '" />';
-        ret += '      <label for="id' + id + '">Id</label>';
+        ret += '      <select name="id">';
+        for (var dev in unknown_devices) {
+            ret += '    <option value="' + dev + '">' + dev + '</option>';
+        }
+        ret += '      </select>';
+        ret += '      <label>Id</label>';
         ret += '    </div>';
         ret += '  </div>';
     }
@@ -182,12 +181,14 @@ function gen_config_page() {
         ret += '   </div>';
         ret += ' </li>';
     }
-    ret += '     <li>';
-    ret += '       <div class="collapsible-header grey darken-2"><i class="material-icons">add</i>Add</div>';
-    ret += '       <div class="collapsible-body">';
-    ret += gen_device_config({num_buttons: 0, num_pirs: 0}, 'new');
-    ret += '       </div>';
-    ret += '     </li>';
+    if (Object.keys(unknown_devices).length > 0) {
+        ret += '     <li>';
+        ret += '       <div class="collapsible-header grey darken-2"><i class="material-icons">add</i>Add</div>';
+        ret += '       <div class="collapsible-body">';
+        ret += gen_device_config({num_buttons: 0, num_pirs: 0}, 'new');
+        ret += '       </div>';
+        ret += '     </li>';
+    }
     ret += '   </ul>';
     return ret;
 }
@@ -264,6 +265,8 @@ function poll_events() {
         });
         for (var ev in data) {
             var dev = data[ev].node_id;
+            if (devices[dev] == undefined) unknown_devices[dev] = true;
+            else delete unknown_devices[dev];
             if (data[ev].kind.SwitchIsOn !== undefined) {
                 if (devices[dev].switches[data[ev].kind.SwitchIsOn] !== undefined)
                     devices[dev].switches[data[ev].kind.SwitchIsOn].status = "on";
