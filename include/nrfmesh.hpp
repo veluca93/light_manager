@@ -37,12 +37,14 @@ class nrfmesh {
     rng rand;
 
     void transmit(uint8_t* pkt) {
-        for (int i=0; i<16; i++) {
-            uint16_t wait_time = rand();
-            delayMicroseconds(wait_time<<4);
-            nrf.tx_mode();
-            nrf.send_sync(pkt);
-            nrf.rx_mode();
+        for (uint8_t i=0; i<4; i++) {
+            for (uint8_t _=0; _<4; i++) {
+                uint16_t wait_time = rand();
+                delayMicroseconds(wait_time<<(4-i));
+                nrf.tx_mode();
+                nrf.send_sync(pkt);
+                nrf.rx_mode();
+            }
         }
     }
 
