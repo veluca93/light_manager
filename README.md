@@ -6,3 +6,4 @@ Give the following parameters to make
 
     BOARD=pro.menu.cpu.16MHzatmega328
     BOARD_UPLOAD_PROTOCOL=arduino
+    BOARD_BUILD_VARIANT=eightanaloginputs
