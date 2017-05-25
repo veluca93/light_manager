@@ -15,7 +15,7 @@ pub struct Event {
     node_id: u8,
     kind: EventType,
     battery_level: u8,
-    date_received: i64
+    date_received: f64
 }
 
 pub struct EventManager {
@@ -28,7 +28,7 @@ impl Event {
             node_id: node_id,
             kind: kind,
             battery_level: battery_level,
-            date_received: -1,
+            date_received: -1.0,
         }
     }
 }
@@ -67,7 +67,7 @@ impl EventManager {
                 kind INTEGER NOT NULL,
                 value INTEGER NOT NULL,
                 battery_level INTEGER NOT NULL,
-                date INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+                date REAL NOT NULL DEFAULT ((julianday('now') - 2440587.5)*86400),
                 CHECK (kind > 0),
                 CHECK (kind < 5)
             );

@@ -259,7 +259,7 @@ function toggle_switch(dev, sw) {
         url: url,
     }).done(function(data) {
         skip = false;
-        poll_timeout = setTimeout(poll_events, 1000);
+        poll_timeout = setTimeout(poll_events, 3000);
     }).fail(function(data) {
         alert(data.responseJSON["msg"]);
         skip = false;
@@ -289,7 +289,7 @@ function poll_events() {
     clearTimeout(poll_timeout);
     poll_timeout = setTimeout(poll_events, 1000);
     var req_data = {
-        start: (+ new Date()) / 1000 - 30*60,
+        start: (+ new Date()) / 1000 - 60,
         stop: (+ new Date()) / 1000 + 30 /* ensure nothing bad happens with clock skew */
     };
     $.ajax({
@@ -301,7 +301,7 @@ function poll_events() {
     }).done(function(data) {
         if (skip) return;
         data.sort(function(a, b) {
-            return a["date_received"] > b["date_received"];
+            return a["date_received"] - b["date_received"];
         });
         var changed = false;
         for (var ev in data) {

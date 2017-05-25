@@ -9,18 +9,22 @@ void setup(){
 }
 
 void handle_status(status_message* msg) {
+    mesh.flush();
     Serial.write(123); // magic byte
     Serial.write(1);
     Serial.write(msg->node);
+    mesh.flush();
     Serial.write(msg->bat_lvl);
     Serial.write(msg->switch_status);
     Serial.write(0); // Padding
 }
 
 void handle_peer_event(peer_event_message* msg) {
+    mesh.flush();
     Serial.write(123); // magic byte
     Serial.write(0);
     Serial.write(msg->node);
+    mesh.flush();
     Serial.write(msg->bat_lvl);
     Serial.write(msg->is_pir);
     Serial.write(msg->id);
@@ -36,6 +40,7 @@ void loop(){
             else handle_peer_event((peer_event_message*) pmsg);
         }
     }
+    mesh.flush();
     if (Serial.available() > 6) {
         uint8_t magic = Serial.read();
         if (magic != 123) {
@@ -54,6 +59,7 @@ void loop(){
             *msg = master_command_message{target_node, turn_on, switch_id};
             break;
         }
+    mesh.flush();
         case 1: {
             uint8_t source_node = Serial.read();
             uint8_t button_mask = Serial.read();

@@ -60,6 +60,7 @@ impl SerialComm {
                     },
                     1 => {
                         let switch_status = buffer[4];
+                        println!("Received update from node {}: {:04b}", node_id, switch_status);
                         for i in 0..4 {
                             let event = Event::new(
                                 node_id,

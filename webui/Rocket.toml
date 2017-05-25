@@ -2,4 +2,4 @@
 address = "127.0.0.1"
 port = 8921
 storage_dir = "data/"
-serial_port = "/dev/ttyACM0"
+serial_port = "/dev/ttyACM1"

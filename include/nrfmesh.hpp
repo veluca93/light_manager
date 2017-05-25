@@ -47,8 +47,7 @@ class nrfmesh {
             nrf.tx_mode();
             nrf.send_sync(pkt);
             nrf.rx_mode();
-            // Clear the radio's queue
-            while(enqueue());
+            flush();
         }
     }
 
@@ -126,6 +125,11 @@ public:
         uint8_t* ret = buf[buf_first].data;
         buf_first = (buf_first+1) & (buf_size-1);
         return ret;
+    }
+
+    void flush() {
+        // Clear the radio's queue
+        while(enqueue());
     }
 };
 }
