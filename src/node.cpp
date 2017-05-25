@@ -30,9 +30,11 @@ void setup(){
         last_pir_event[i] = 0;
         last_pir_status[i] = true;
     }
+    pinMode(light_pin, INPUT_PULLUP);
 }
 
 void send_status() {
+    last_status_message = millis();
     status_message* pkt = (status_message*) mesh.get_next_packet();
     uint8_t switch_status = 0;
     for (uint8_t i=0; i<board_max_switches; i++)
@@ -111,6 +113,7 @@ void loop(){
         if (!is_switch_on_for_pir[i]) continue;
         if (millis() - pir_on_time[i] > Config::get_switch_pir_time(i)*1000) {
             flip_switch(i);
+            send_status();
         }
     }
 
@@ -130,7 +133,7 @@ void loop(){
     // Check for current PIR events
     for (uint8_t i=0; i<board_max_pirs; i++) {
         bool status = digitalRead(pir_base_pin+i);
-        if (status && !last_pir_status[i]) {
+        if (status && !last_pir_status[i] && digitalRead(light_pin)) {
             if (millis() - last_pir_event[i] >= pir_interval) {
                 last_pir_event[i] = millis();
                 peer_event_message* pkt = (peer_event_message*) mesh.get_next_packet();
@@ -145,7 +148,6 @@ void loop(){
     // Check if we need to send a status packet
     unsigned long status_interval = status_min_interval + ((unsigned long) rnd() >> 2);
     if (millis() - last_status_message > status_interval) {
-        last_status_message = millis();
         send_status();
     }
 }

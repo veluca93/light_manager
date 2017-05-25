@@ -13,10 +13,12 @@ static const uint8_t switch_base_pin = 9;
 static const uint8_t board_max_switches = 2;
 
 static const uint8_t pir_base_pin = 4;
-static const uint8_t board_max_pirs = 3;
+static const uint8_t board_max_pirs = 2;
 
 static const uint8_t button_base_pin = A1;
 static const uint8_t board_max_buttons = 5;
+
+static const uint8_t light_pin = 6;
 
 static const uint8_t battery_lvl_pin = A0;
 
