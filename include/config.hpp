@@ -13,7 +13,7 @@ public:
     static void set_switch_pir_time(uint8_t switch_id, uint16_t time) {
         EEPROM.put(get_addr(switch_id, 0), time);
     }
-    static uint16_t get_switch_pir_time(uint8_t switch_id) {
+    static unsigned long get_switch_pir_time(uint8_t switch_id) {
         uint16_t ret = 0;
         EEPROM.get(get_addr(switch_id, 0), ret);
         return ret;

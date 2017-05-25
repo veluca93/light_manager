@@ -9,11 +9,13 @@ bool is_switch_on_for_pir[board_max_switches] = {};
 unsigned long pir_on_time[board_max_switches] = {};
 unsigned long last_button_press[board_max_buttons] = {};
 unsigned long last_pir_event[board_max_pirs] = {};
+bool last_pir_status[board_max_pirs] = {};
 unsigned long last_status_message = 0;
 
 rng rnd(ID);
 
 void setup(){
+    Serial.begin(9600);
     for (uint8_t i=0; i<board_max_switches; i++) {
         pinMode(switch_base_pin+i, OUTPUT);
         digitalWrite(switch_base_pin+i, LOW);
@@ -27,6 +29,7 @@ void setup(){
     for (uint8_t i=0; i<board_max_pirs; i++) {
         pinMode(pir_base_pin+i, INPUT_PULLUP);
         last_pir_event[i] = 0;
+        last_pir_status[i] = true;
     }
 }
 
@@ -70,6 +73,8 @@ void handle_master_command(const master_command_message* msg) {
     if (msg->target_node == ID && msg->switch_id < board_max_switches) {
         if (msg->turn_on != is_switch_on[msg->switch_id]) {
             flip_switch(msg->switch_id);
+        } else {
+            is_switch_on_for_pir[msg->switch_id] = false;
         }
     }
     send_status();
@@ -105,7 +110,7 @@ void loop(){
     // Check if a switch turned on by a PIR has reached timeout
     for (uint8_t i=0; i<board_max_switches; i++) {
         if (!is_switch_on_for_pir[i]) continue;
-        if (millis() - pir_on_time[i] > Config::get_switch_pir_time(i)) {
+        if (millis() - pir_on_time[i] > Config::get_switch_pir_time(i)*1000) {
             flip_switch(i);
         }
     }
@@ -125,7 +130,17 @@ void loop(){
 
     // Check for current PIR events
     for (uint8_t i=0; i<board_max_pirs; i++) {
-        // TODO
+        bool status = digitalRead(pir_base_pin+i);
+        if (status && !last_pir_status[i]) {
+            if (millis() - last_pir_event[i] >= pir_interval) {
+                last_pir_event[i] = millis();
+                peer_event_message* pkt = (peer_event_message*) mesh.get_next_packet();
+                *pkt = peer_event_message{ID, get_battery_level(), true, i};
+                mesh.send();
+                handle_peer_event(pkt);
+            }
+        }
+        last_pir_status[i] = status;
     }
 
     // Check if we need to send a status packet
