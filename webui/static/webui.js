@@ -289,7 +289,7 @@ function poll_events() {
     clearTimeout(poll_timeout);
     poll_timeout = setTimeout(poll_events, 1000);
     var req_data = {
-        start: (+ new Date()) / 1000 - 60,
+        start: (+ new Date()) / 1000 - 20*60,
         stop: (+ new Date()) / 1000 + 30 /* ensure nothing bad happens with clock skew */
     };
     $.ajax({
