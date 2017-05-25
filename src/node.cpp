@@ -15,7 +15,6 @@ unsigned long last_status_message = 0;
 rng rnd(ID);
 
 void setup(){
-    Serial.begin(9600);
     for (uint8_t i=0; i<board_max_switches; i++) {
         pinMode(switch_base_pin+i, OUTPUT);
         digitalWrite(switch_base_pin+i, LOW);
