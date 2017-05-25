@@ -31,7 +31,7 @@ public:
     }
     static bool is_pir_enabled(uint8_t switch_id, uint8_t node_id, uint8_t pir_id) {
         uint8_t pir_mask = 0;
-        EEPROM.get(get_addr(switch_id, node_id), pir_mask);
+        EEPROM.get(get_addr(switch_id, node_id, true), pir_mask);
         return pir_mask & (1<<pir_id);
     }
 };

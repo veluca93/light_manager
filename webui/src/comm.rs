@@ -115,7 +115,7 @@ impl SerialComm {
     pub fn update_switch_pir_time(&mut self, device_id: u8, switch_id: u8, pir_time: u16) {
         let mut data = [0; 7];
         data[0] = 123;
-        data[1] = 1;
+        data[1] = 2;
         data[2] = device_id;
         data[3] = switch_id;
         data[4] = (pir_time>>8) as u8;
