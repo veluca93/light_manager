@@ -53,9 +53,11 @@ void flip_switch(uint8_t switch_id) {
 void handle_peer_event(const peer_event_message* msg) {
     if (msg->is_pir) {
         for (unsigned i=0; i<board_max_switches; i++) {
-            if (Config::is_pir_enabled(i, msg->node, msg->id) && !is_switch_on[i]) {
-                flip_switch(i);
-                is_switch_on_for_pir[i] = true;
+            if (Config::is_pir_enabled(i, msg->node, msg->id)) {
+                if (!is_switch_on[i]) {
+                    flip_switch(i);
+                    is_switch_on_for_pir[i] = true;
+                }
                 pir_on_time[i] = millis();
             }
         }
